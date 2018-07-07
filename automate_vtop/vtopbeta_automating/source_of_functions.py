@@ -33,7 +33,7 @@ def download_files(browser, dir_name, download_links):
 
     if not os.path.isdir(download_dir):
         os.mkdir(download_dir)
-        
+
     os.chdir(download_dir)
     if not os.path.isdir(root_dir_name):
         os.mkdir(root_dir_name)
@@ -57,7 +57,7 @@ def download_files(browser, dir_name, download_links):
         return
     os.chdir(os.path.join(download_dir, 'temp'))
 
-#Download and save and rename the file in temp directory
+#Download and save and rename the file in temp directory synchronously, ie, wait for one file to complete download before starting the next
     for k, v in download_links.items(): # v is a list
         counter_append = 0
         if len(v) > 1:
@@ -117,28 +117,39 @@ def download_course_materials(browser):
     date_re = re.compile(date_re_str)
 
 #Finding the most recent exam that got finished
-    today_date = datetime.datetime(2018,8,20)
+    any_exam_done = False
+    today_date = datetime.datetime(2018,1,29)
     if exam_schedule.exam_schedule['CAT-1_end'] < today_date:
         exam_done = 'CAT-1' # ie, download after lecture dates that fall in CAT-1 period, or do not download CAT-1 files
         exam_done_end_date = exam_schedule.exam_schedule[exam_done +'_end']
+        # print(exam_done_end_date)
+        any_exam_done = True
     if exam_schedule.exam_schedule['CAT-2_end'] < today_date:
         exam_done = 'CAT-2' # downlaod after lecture dates that fall in CAT-1 and CAT-2 period
         exam_done_end_date = exam_schedule.exam_schedule[exam_done +'_end']
+        # print(exam_done_end_date)
+        any_exam_done = True
+    if any_exam_done == False:
+        exam_done = 'none'
+        exam_done_end_date = datetime.datetime(1,1,1) # smaller than any other date in the recent
 
-    initial_row_num = len(rows_in_ref_material_table)
-    updated_row_num = initial_row_num
 
 # Remove those rows whose lecture_date < end date of exam that has alrady been conducted
+    initial_row_num = len(rows_in_ref_material_table)
+    updated_row_num = initial_row_num
     for i in range(1, initial_row_num):
         if i >= updated_row_num:
             break
         cells = rows_in_ref_material_table[i].find_elements_by_css_selector('td')
         lecture_date = cells[1].text
+        # print(lecture_date)
         mo = date_re.search(lecture_date)
         lecture_date = datetime.datetime(int(mo.group(3)),int(exam_schedule.monthname_monthnum[mo.group(2)]),int(mo.group(1)))
-
+        print(lecture_date)
         if exam_done_end_date > lecture_date:
+            # print('len before: '+ str(len((rows_in_ref_material_table))))
             rows_in_ref_material_table.remove(rows_in_ref_material_table[i])
+            print(cells[3].text)
             updated_row_num -= 1
 
 # Accumulate the download links for the reference materials
