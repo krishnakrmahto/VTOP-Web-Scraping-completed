@@ -137,20 +137,25 @@ def download_course_materials(browser):
 # Remove those rows whose lecture_date < end date of exam that has alrady been conducted
     initial_row_num = len(rows_in_ref_material_table)
     updated_row_num = initial_row_num
-    for i in range(1, initial_row_num):
-        if i >= updated_row_num:
-            break
-        cells = rows_in_ref_material_table[i].find_elements_by_css_selector('td')
-        lecture_date = cells[1].text
-        # print(lecture_date)
-        mo = date_re.search(lecture_date)
-        lecture_date = datetime.datetime(int(mo.group(3)),int(exam_schedule.monthname_monthnum[mo.group(2)]),int(mo.group(1)))
-        print(lecture_date)
-        if exam_done_end_date > lecture_date:
-            # print('len before: '+ str(len((rows_in_ref_material_table))))
-            rows_in_ref_material_table.remove(rows_in_ref_material_table[i])
-            print(cells[3].text)
-            updated_row_num -= 1
+
+    not_done = True
+    while not_done:
+        for i in range(1, initial_row_num):
+            if i >= updated_row_num:
+                not_done = False
+                break
+            cells = rows_in_ref_material_table[i].find_elements_by_css_selector('td')
+            lecture_date = cells[1].text
+            # print(lecture_date)
+            mo = date_re.search(lecture_date)
+            lecture_date = datetime.datetime(int(mo.group(3)),int(exam_schedule.monthname_monthnum[mo.group(2)]),int(mo.group(1)))
+            print(lecture_date)
+            if exam_done_end_date > lecture_date:
+                # print('len before: '+ str(len((rows_in_ref_material_table))))
+                rows_in_ref_material_table.remove(rows_in_ref_material_table[i])
+                print(cells[3].text)
+                updated_row_num -= 1
+                break
 
 # Accumulate the download links for the reference materials
     download_links = {}
