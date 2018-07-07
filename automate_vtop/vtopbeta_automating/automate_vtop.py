@@ -135,18 +135,18 @@ try:
     img = Image.open('./captcha_save/captcha.png')
     captcha_str = CaptchaParse(img)
 
-    #13. Fill in login details
+    #14. Fill in login details
     username_elem.send_keys(registration_num)
     password_elem.send_keys(password)
     captcha_elem.send_keys(captcha_str)
 
-    #14. Sign in
+    #15. Sign in
     # note: the form doesn't have a submit button, the sign in button is not the submit button
     # so maybe that is why using submit method on form elements leads to a page that doesn't exist
     signin_button = browser.find_element_by_css_selector('.btn.btn-primary.pull-right')
     signin_button.click()
 
-    #15. Handle wrong reg/pwd inputs
+    #16. Handle wrong reg/pwd inputs
     try:
         WebDriverWait(browser, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.user-image')))
     except:
@@ -154,7 +154,7 @@ try:
         sys.exit()
 
     #TODO: scrapped the profile to obtain different informations- time table of currrent day, for eg
-    #14. Open the menu on the left using the toggle hamburger button- first find the button and then click
+    #17. Open the menu on the left using the toggle hamburger button- first find the button and then click
     try:
         waiting.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'a[role = "button"]')))
     except:
@@ -163,17 +163,17 @@ try:
     hamburger_elem = browser.find_element_by_css_selector('a[role = "button"]')
     hamburger_elem.click()
 
-    #15. Find the Academics option in the left menu and lick on it
+    #18. Find the Academics option in the left menu and lick on it
     academics_elem = browser.find_element_by_css_selector('#dbMenu ul.sidebar-menu.tree>li:nth-child(2)')
     academics_elem.click()
 
-    #16. Get the time table element and click on it
+    #19. Get the time table element and click on it
     waiting.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#dbMenu ul.sidebar-menu.tree>li:nth-child(2) li:nth-child(2)>a span')))
     coursepage_elem = browser.find_element_by_css_selector('#dbMenu ul.sidebar-menu.tree>li:nth-child(2) li:nth-child(4)>a span')
     coursepage_elem.click()
     hamburger_elem.click()
 
-    #17. Let the user select semester name and course from the page manually
+    #20. Let the user select semester name and course from the page manually
     print('Choose Semester Name and Course from the dropdown on the page.')
     waiting.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.table')))
 
@@ -261,6 +261,7 @@ try:
             # print('True')
             return True
 
+    #21. Create download thread, complete a download and then take user response whether or not the user wants to download more files
     while True:
         while find_download_element():
             browser.execute_script(js)

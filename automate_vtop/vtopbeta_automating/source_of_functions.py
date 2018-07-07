@@ -138,6 +138,10 @@ def download_course_materials(browser):
     initial_row_num = len(rows_in_ref_material_table)
     updated_row_num = initial_row_num
 
+#NOTE: while it may appear that using two nested loop (while-for) is not required for removing elements from the
+#NOTE contd..: list rows_in_ref_material_table and that it can be done with the single for loop similar to the inner for loop, it cannot be actually. Because
+#NOTE contd..: for remove method removes item and then does a left shift as well, so for eg, l = [1,2,3,4,5] for i in l: l.remove(i) will actually remove the objects
+#NOTE contd..: 1,3,5 not all the objects of the list. Same happens in the indexed loop used in association with range function.
     not_done = True
     while not_done:
         for i in range(1, initial_row_num):
