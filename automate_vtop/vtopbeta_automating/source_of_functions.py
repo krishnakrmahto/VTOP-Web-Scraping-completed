@@ -30,6 +30,7 @@ def download_files(browser, dir_name, download_links):
     root_dir_name = browser.find_element_by_css_selector('#CoursePageLectureDetail > div > div.panel-body > div:nth-child(1) > div > table > tbody > tr:nth-child(2) > td:nth-child(2)').text
     logging.debug('Course name: ' + root_dir_name)
     download_dir = find_download_dir()
+    print('Download directory: ' + download_dir)
 
     if not os.path.isdir(download_dir):
         os.mkdir(download_dir)
