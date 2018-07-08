@@ -1,5 +1,5 @@
 # Make the imports
-import requests, sys, pytesseract, base64, getpass, datetime, time, threading, platform, os, argparse, shelve
+import requests, sys, pytesseract, base64, getpass, datetime, time, threading, platform, os, argparse, shelve, logging
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
@@ -12,10 +12,25 @@ from PIL import Image
 from parser import CaptchaParse
 from source_of_functions import *
 
+print(
+        '''
+        How to execute:
+            new user login---  1. if user doesn't want his username/password to be saved     python automate_vtop.py -n
+                                2. 1. if user wants his username/password to be saved     python automate_vtop.py -n -s
+            login with saved credentials: python automate_vtop.py
+        Make sure you used the appropriate way to execute the script, if not, press "CTRL+C" now to exit and retry running the program.
+        '''
+        )
+
+#Set up log settings
+logging.basicConfig(filename = 'log/downloadlog.txt', level = logging.DEBUG, format = '%(asctime)s - %(levelname)s - %(message)s')
+log_file = open('log/downloadlog.txt','w')
+log_file.close()
+
 
 #1. Parse the arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('-n', '--newuser', help= 'Give this option if you are loggin in for the first time or \
+parser.add_argument('-n', '--newuser', help= 'Give this option if you are logging in for the first time or \
                     you want to login into a new account.', action = 'store_true')
 parser.add_argument('-s', '--savecredentials', help = 'Give this option to save the username and password you entered.', action = 'store_true')
 args = parser.parse_args()
@@ -27,7 +42,8 @@ if args.newuser and args.savecredentials:
     password = getpass.getpass('Enter password: ')
 
     if registration_num == '' or password == '':
-        print('None of registration number, password, semester fields can be left empty.')
+        print('None of registration number, password can be left empty.')
+        logging.debug('Registration number/password not entered correctly. Attempted with -ns options')
         sys.exit()
 
     shelf_file = shelve.open('./shelf/shelf_file')
@@ -43,6 +59,7 @@ if args.newuser and not args.savecredentials:
 
     if registration_num == '' or password == '':
         print('None of registration number, password, semester fields can be left empty.')
+        logging.debug('None of registration number, password can be left empty. Attempted with -n option')
         sys.exit()
 
 #it is a plausible case that a user will choose to save credentials but is not using new credentials becase the plan is to ask
@@ -52,6 +69,7 @@ if not args.newuser and not args.savecredentials:
 
     if not os.path.isfile('./shelf/shelf_file.dat'):
         print('No saved credentials. Try again with -n option to login as a new user. You can use -s option with -n to save the credentials entered.')
+        logging.debug('Did not run the script either with -n or -s options and no credentials have been saved before')
         sys.exit()
 
     try:
@@ -91,7 +109,8 @@ try:
         vtopbeta_elem = browser.find_element_by_css_selector('a[href = "https://vtopbeta.vit.ac.in/vtop"] font b')
         # print('Found element that href\'s to vtopbeta')
     except:
-        print('No element with attribute value a[href="https://vtopbeta.vit.ac.in/vtop"] was found')
+        print('Unexpected error: failed to load the page. Please retry')
+        logging.debug('No element with attribute value a[href="https://vtopbeta.vit.ac.in/vtop"] was found')
         sys.exit()
 
     #7. Open vtopbeta
@@ -102,7 +121,8 @@ try:
         login_page_link_elem = browser.find_element_by_css_selector('.btn.btn-primary.pull-right')
         # print('Found element that href\'s to the login page')
     except NoSuchElementException:
-        print('Check the css selector for the button leading to the login page: ' + str(err))
+        print('Unexpected error: Unable to open vtopbeta page properly. Please retry')
+        logging.debug('Check the css selector for the button leading to the login page: ' + str(err))
         sys.exit()
 
     login_page_link_elem.click()
@@ -117,7 +137,8 @@ try:
         captcha_elem = browser.find_element_by_css_selector('#captchaCheck')
         captcha_img_elem = browser.find_element_by_css_selector('img[alt = "vtopCaptcha"]')
     except NoSuchElementException as err:
-        print('Input elements with the given css selectors were not found: ' + err)
+        print('Unexpected error: Failed to load the login page properly. Please retry')
+        logging.debug('Input elements with the given css selectors were not found: ' + err)
         sys.exit()
 
     #10. Find the image source of the captcha image
@@ -151,6 +172,7 @@ try:
         WebDriverWait(browser, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.user-image')))
     except:
         print('Wrong registration number/password')
+        logging.debug('Wrong user credentials')
         sys.exit()
 
     #TODO: scrapped the profile to obtain different informations- time table of currrent day, for eg
@@ -159,6 +181,7 @@ try:
         waiting.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'a[role = "button"]')))
     except:
         print('VTOP taking too long to respond!')
+        logging.debug('VTOP server taking too long to respond')
         sys.exit()
     hamburger_elem = browser.find_element_by_css_selector('a[role = "button"]')
     hamburger_elem.click()
@@ -283,3 +306,4 @@ try:
 
 except NoSuchWindowException:
     print('Either the browser is closed or the Authorization failed! Do comeback!')
+    logging.debug('Browser closed/Authorization failed')
