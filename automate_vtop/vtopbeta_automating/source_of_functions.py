@@ -62,11 +62,11 @@ def download_files(browser, dir_name, download_links):
     for k, v in download_links.items(): # v is a list
         counter_append = 0
         if len(v) > 1:
+            logging.debug(k + ': ' + str(len(v)) + ' files')
             for link in v:
                 counter_append += 1
                 intuitive_file_name = k + '_' + str(counter_append)
 
-                logging.debug(intuitive_file_name + ': ' + str(len(v)) + ' files')
                 browser.get(link)
                 time.sleep(2)
 
@@ -87,9 +87,9 @@ def download_files(browser, dir_name, download_links):
             counter = 1
             for link in v:
                 intuitive_file_name = k
-                if intuitive_file_name == '':
-                    intuitive_file_name = 'file' + str(counter)
-                    counter += 1
+                # if intuitive_file_name == '':
+                #     intuitive_file_name = 'file' + str(counter)
+                #     counter += 1
                 # browser.switch_to_window(browser.window_handles[0])
                 logging.debug(intuitive_file_name + ': 1 file')
                 browser.get(link)
@@ -167,32 +167,36 @@ def download_course_materials(browser):
 
 # Accumulate the download links for the reference materials
     download_links = {}
+    removed_dates = []
     for i in range(1, len(rows_in_ref_material_table)):
         cells = rows_in_ref_material_table[i].find_elements_by_css_selector('td')
         anchor_tags = cells[len(cells)-1].find_elements_by_css_selector('p a')
 
-        removed_dates = []
         if len(anchor_tags) == 0:
             removed_dates.append(cells[1].text)
             continue
         else:
             logging.debug('Files uploaded on ' + cells[1].text + ' ' + str(anchor_tags))
 
-        if exam_done == 'CAT-1':
-            dir_name = 'CAT-2'
-        elif exam_done == 'CAT-2':
-            dir_name = 'FAT'
-        else:
-            dir_name = 'CAT-1'
-
         key = cells[3].text
+
+        if key == '':
+            key = cells[1].text
+
         download_links[key] = []
         for anchor_tag in anchor_tags:
             href = anchor_tag.get_attribute('href')
             download_link = href
             download_links[key].append(download_link)
 
-    logging.debug('Dates which had no reference materials uploaded against them: ' + str(removed_dates))
+    if exam_done == 'CAT-1':
+        dir_name = 'CAT-2'
+    elif exam_done == 'CAT-2':
+        dir_name = 'FAT'
+    else:
+        dir_name = 'CAT-1'
+
+    logging.debug('Dates which had no reference materials uploaded against them and got removed: ' + str(removed_dates))
     logging.debug('Filtered download links dictionary: ' + str(download_links))
     download_files(browser, dir_name, download_links)
     print('Download finished!')
