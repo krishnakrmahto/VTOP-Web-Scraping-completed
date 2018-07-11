@@ -154,11 +154,10 @@ def download_course_materials(browser):
             # print(lecture_date)
             mo = date_re.search(lecture_date)
             lecture_date = datetime.datetime(int(mo.group(3)),int(exam_schedule.monthname_monthnum[mo.group(2)]),int(mo.group(1)))
-            print(lecture_date)
+            # print(lecture_date)
             if exam_done_end_date > lecture_date:
-                # print('len before: '+ str(len((rows_in_ref_material_table))))
+                logging.debug(' Row topic to be deleted: ' + cells[3].text ' | ' + 'Row lecture date to be deleted: ' + cells[1].text)
                 rows_in_ref_material_table.remove(rows_in_ref_material_table[i])
-                print(cells[3].text)
                 updated_row_num -= 1
                 break
 
