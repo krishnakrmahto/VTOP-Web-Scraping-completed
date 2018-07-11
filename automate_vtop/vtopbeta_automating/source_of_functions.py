@@ -112,6 +112,8 @@ def download_course_materials(browser):
     print('Hold your seat, your files are downloading...')
     rows_in_ref_material_table = browser.find_elements_by_css_selector('#CoursePageLectureDetail > div > div.panel-body > div:nth-child(3) > div:nth-child(2) > div > table > tbody > tr')
 
+    logging.debug('Number of rows in the course table originally: ' + str(len(rows_in_ref_material_table)))
+
     now = datetime.datetime.now()
     today_date = datetime.datetime(now.year, now.month, now.day)
     date_re_str = r'(\d{2})-([A-Za-z]{3})-(\d{4})'
@@ -156,10 +158,12 @@ def download_course_materials(browser):
             lecture_date = datetime.datetime(int(mo.group(3)),int(exam_schedule.monthname_monthnum[mo.group(2)]),int(mo.group(1)))
             # print(lecture_date)
             if exam_done_end_date > lecture_date:
-                logging.debug(' Row topic to be deleted: ' + cells[3].text ' | ' + 'Row lecture date to be deleted: ' + cells[1].text)
+                logging.debug('Row topic to be deleted: ' + cells[3].text + ' | ' + 'Row lecture date to be deleted: ' + cells[1].text)
                 rows_in_ref_material_table.remove(rows_in_ref_material_table[i])
                 updated_row_num -= 1
                 break
+
+    logging.debug('Number of rows after removing irrelevant rows: ' + str(len(rows_in_ref_material_table)))
 
 # Accumulate the download links for the reference materials
     download_links = {}
@@ -167,8 +171,12 @@ def download_course_materials(browser):
         cells = rows_in_ref_material_table[i].find_elements_by_css_selector('td')
         anchor_tags = cells[len(cells)-1].find_elements_by_css_selector('p a')
 
+        removed_dates = []
         if len(anchor_tags) == 0:
+            removed_dates.append(cells[1].text)
             continue
+        else:
+            logging.debug('Files uploaded on ' + cells[1].text + ' ' + str(anchor_tags))
 
         if exam_done == 'CAT-1':
             dir_name = 'CAT-2'
@@ -184,5 +192,7 @@ def download_course_materials(browser):
             download_link = href
             download_links[key].append(download_link)
 
+    logging.debug('Dates which had no reference materials uploaded against them: ' + str(removed_dates))
+    logging.debug('Filtered download links dictionary: ' + str(download_links))
     download_files(browser, dir_name, download_links)
     print('Download finished!')
